@@ -44,14 +44,14 @@ def get_arguments():
     parser.add_argument("-d", "--debug", help="debug mode", action="store_true")
     subparser = parser.add_subparsers(title="commands", metavar="command", required=True)
     auth = subparser.add_parser("auth", help="authenticate and get token")
-    auth.add_argument("auth", help="authenticate and print refresh_token", action="store_true")
+    auth.set_defaults(auth=True)
     loyalty_id = subparser.add_parser("id", help="show loyalty ID")
-    loyalty_id.add_argument("id", help="show loyalty ID", action="store_true")
+    loyalty_id.set_defaults(id=True)
     receipt = subparser.add_parser("receipt", help="output last receipts as json")
-    receipt.add_argument("receipt", help="output last receipts as json", action="store_true")
+    receipt.set_defaults(receipt=True)
     receipt.add_argument("-a", "--all", help="fetch all receipts", action="store_true")
     coupon = subparser.add_parser("coupon", help="activate coupons")
-    coupon.add_argument("coupon", help="output all coupons", action="store_true")
+    coupon.set_defaults(coupon=True)
     coupon.add_argument("-a", "--all", help="activate all coupons", action="store_true")
     return vars(parser.parse_args())
 
@@ -61,13 +61,13 @@ def check_auth():
     try:
         # pylint: disable=import-outside-toplevel, unused-import
         import oic
-        import seleniumwire
+        import selenium
         import getuseragent
         import webdriver_manager
     except ImportError:
         print(
             "To login and receive a refresh token you need to install all auth requirements:\n"
-            '  pip install "lidl-plus[auth]"\n'
+            '  uv pip install "lidl-plus[auth]"\n'
             "You also need google chrome to be installed."
         )
         sys.exit(1)
@@ -86,7 +86,7 @@ def lidl_plus_login(args):
         return LidlPlusApi(language, country, args.get("refresh_token"))
     login_method = input("Login with email or phone number? ([e]mail / [p]hone): ")
     if login_method.lower() not in ["e", "p"]:
-        exit(1)
+        sys.exit(1)
     if login_method == "e":
         username = args.get("user") or input("Enter your lidl plus username (email): ")
     else:
@@ -160,7 +160,7 @@ def activate_coupons(args):
         print(json.dumps(coupons, indent=4))
         return
     i = 0
-    for section in coupons.get("sections", {}):
+    for section in coupons.get("sections", []):
         for coupon in section.get("promotions", {}):
             if coupon["isActivated"]:
                 continue

@@ -6,3 +6,7 @@ venv/
 *.log
 **/*.egg-info/
 test.py
+
+receipts/
+refresh_token
+.DS_Store
